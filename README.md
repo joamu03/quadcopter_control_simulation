@@ -43,71 +43,124 @@ The quadcopter is modeled as a rigid body evolving in three-dimensional space wi
 
 The twelve-dimensional state vector $\mathbf{x} \in \mathbb{R}^{12}$ is defined as:
 
-$$\mathbf{x} = \begin{bmatrix} x & y & z & v_x & v_y & v_z & \phi & \theta & \psi & p & q & r \end{bmatrix}^T$$
+$$
+\mathbf{x} = \begin{bmatrix} x & y & z & v_x & v_y & v_z & \phi & \theta & \psi & p & q & r \end{bmatrix}^T
+$$
 
 - **Inertial Position:** $\mathbf{p} = [x, y, z]^T \in \mathbb{R}^3\ [\text{m}]$
-- **Inertial Linear Velocity:** $\mathbf{v} = [v_x, v_y, v_z]^T = \dot{\mathbf{p}} \in \mathbb{R}^3\ [\text{m/s}]$
+- **Inertial Linear Velocity:** $\mathbf{v} = \dot{\mathbf{p}} \in \mathbb{R}^3\ [\text{m/s}]$
 - **Euler Attitude Angles (Intrinsic Z-Y-X Convention):** $\boldsymbol{\eta} = [\phi, \theta, \psi]^T \in \mathbb{R}^3\ [\text{rad}]$ — Roll ($\phi$), Pitch ($\theta$), and Yaw ($\psi$).
 - **Body-Frame Angular Velocity:** $\boldsymbol{\omega} = [p, q, r]^T \in \mathbb{R}^3\ [\text{rad/s}]$
 
 ### 2. Attitude Kinematics and Rotation Matrix
-The transformation from the body-fixed frame $\mathcal{B}$ to the inertial frame $\mathcal{I}$ is parameterized by the orthogonal direction cosine matrix $\mathbf{R}(\phi, \theta, \psi) = \mathbf{R}_z(\psi)\mathbf{R}_y(\theta)\mathbf{R}_x(\phi) \in SO(3)$:
+The transformation from the body-fixed frame $\mathcal{B}$ to the inertial frame $\mathcal{I}$ is parameterized by the orthogonal direction cosine matrix $\mathbf{R}(\phi, \theta, \psi) \in SO(3)$:
 
-$$\mathbf{R} = \begin{bmatrix} \cos\theta\cos\psi & \sin\phi\sin\theta\cos\psi - \cos\phi\sin\psi & \cos\phi\sin\theta\cos\psi + \sin\phi\sin\psi \\ \cos\theta\sin\psi & \sin\phi\sin\theta\sin\psi + \cos\phi\cos\psi & \cos\phi\sin\theta\sin\psi - \sin\phi\cos\psi \\ -\sin\theta & \sin\phi\cos\theta & \cos\phi\cos\theta \end{bmatrix}$$
+$$
+\mathbf{R}(\phi, \theta, \psi) = \mathbf{R}_z(\psi)\mathbf{R}_y(\theta)\mathbf{R}_x(\phi) = \begin{bmatrix} \cos\theta\cos\psi & \sin\phi\sin\theta\cos\psi - \cos\phi\sin\psi & \cos\phi\sin\theta\cos\psi + \sin\phi\sin\psi \\ \cos\theta\sin\psi & \sin\phi\sin\theta\sin\psi + \cos\phi\cos\psi & \cos\phi\sin\theta\sin\psi - \sin\phi\cos\psi \\ -\sin\theta & \sin\phi\cos\theta & \cos\phi\cos\theta \end{bmatrix}
+$$
 
 The kinematic differential equation relating body angular rates $\boldsymbol{\omega} = [p, q, r]^T$ to the Euler angle derivatives $\dot{\boldsymbol{\eta}} = [\dot{\phi}, \dot{\theta}, \dot{\psi}]^T$ is given by:
 
-$$\begin{bmatrix} \dot{\phi} \\ \dot{\theta} \\ \dot{\psi} \end{bmatrix} = \mathbf{W}(\phi, \theta)\begin{bmatrix} p \\ q \\ r \end{bmatrix} = \begin{bmatrix} 1 & \sin\phi\tan\theta & \cos\phi\tan\theta \\ 0 & \cos\phi & -\sin\phi \\ 0 & \frac{\sin\phi}{\cos\theta} & \frac{\cos\phi}{\cos\theta} \end{bmatrix} \begin{bmatrix} p \\ q \\ r \end{bmatrix}$$
+$$
+\begin{bmatrix} \dot{\phi} \\ \dot{\theta} \\ \dot{\psi} \end{bmatrix} = \mathbf{W}(\phi, \theta)\begin{bmatrix} p \\ q \\ r \end{bmatrix} = \begin{bmatrix} 1 & \sin\phi\tan\theta & \cos\phi\tan\theta \\ 0 & \cos\phi & -\sin\phi \\ 0 & \frac{\sin\phi}{\cos\theta} & \frac{\cos\phi}{\cos\theta} \end{bmatrix} \begin{bmatrix} p \\ q \\ r \end{bmatrix}
+$$
 
 ### 3. Translational and Rotational Dynamics (Newton-Euler Equations)
 Applying Newton's Second Law in the inertial frame $\mathcal{I}$ and Euler's rotational equations of motion in the body-fixed frame $\mathcal{B}$ yields the nonlinear system:
 
-$$m \dot{\mathbf{v}} = \mathbf{R}(\phi, \theta, \psi) \begin{bmatrix} 0 \\ 0 \\ U_1 \end{bmatrix} - \begin{bmatrix} 0 \\ 0 \\ m g \end{bmatrix} + \mathbf{F}_d(\mathbf{v}_{\text{rel}})$$
+$$
+m \dot{\mathbf{v}} = \mathbf{R}(\phi, \theta, \psi) \begin{bmatrix} 0 \\ 0 \\ U_1 \end{bmatrix} - \begin{bmatrix} 0 \\ 0 \\ m g \end{bmatrix} + \mathbf{F}_d(\mathbf{v}_{\text{rel}})
+$$
 
-$$\mathbf{J}\dot{\boldsymbol{\omega}} + \boldsymbol{\omega} \times (\mathbf{J}\boldsymbol{\omega}) + \boldsymbol{\tau}_{\text{gyro}} = \begin{bmatrix} \tau_\phi \\ \tau_\theta \\ \tau_\psi \end{bmatrix} + \boldsymbol{\tau}_{\text{wind}} - \mathbf{D}_\omega \boldsymbol{\omega}$$
+$$
+\mathbf{J}\dot{\boldsymbol{\omega}} + \boldsymbol{\omega} \times (\mathbf{J}\boldsymbol{\omega}) + \boldsymbol{\tau}_{\text{gyro}} = \begin{bmatrix} \tau_\phi \\ \tau_\theta \\ \tau_\psi \end{bmatrix} + \boldsymbol{\tau}_{\text{wind}} - \mathbf{D}_\omega \boldsymbol{\omega}
+$$
 
-where:
-- $\mathbf{J} = \text{diag}(I_{xx}, I_{yy}, I_{zz})$ denotes the principal inertia tensor of the airframe.
-- $\boldsymbol{\tau}_{\text{gyro}} = J_r (\boldsymbol{\omega} \times \mathbf{e}_3) \Omega_r$ captures the **gyroscopic precession torque** induced by the four counter-rotating rotors with net residual angular speed $\Omega_r = \omega_1 - \omega_2 + \omega_3 - \omega_4$.
-- Time integration is performed deterministically via the explicit **4th-Order Runge-Kutta (RK4)** solver at a fixed step size $\Delta t = 10\text{ ms}$ ($100\text{ Hz}$).
+where the principal inertia tensor $\mathbf{J}$ and the **gyroscopic precession torque** induced by the four counter-rotating rotors are defined as:
+
+$$
+\mathbf{J} = \text{diag}(I_{xx}, I_{yy}, I_{zz}), \qquad \boldsymbol{\tau}_{\text{gyro}} = J_r (\boldsymbol{\omega} \times \mathbf{e}_3) \Omega_r, \qquad \Omega_r = \omega_1 - \omega_2 + \omega_3 - \omega_4
+$$
+
+Time integration is performed deterministically via the explicit **4th-Order Runge-Kutta (RK4)** solver at a fixed step size $\Delta t = 10\text{ ms}$ ($100\text{ Hz}$).
 
 ### 4. Control Allocation and Rotor Mixing Matrix
-For a symmetric **X-configuration** quadcopter with arm length $L$ and moment arm projection $l = L/\sqrt{2}$, the control allocation matrix $\mathbf{M}_{\text{alloc}}$ maps the individual rotor thrusts $\mathbf{F} = [F_1, F_2, F_3, F_4]^T$ ($F_i = K_F \omega_i^2$) to the generalized control wrench $\mathbf{u} = [U_1, \tau_\phi, \tau_\theta, \tau_\psi]^T$:
+For a symmetric **X-configuration** quadcopter with arm length $L$ and moment arm projection $l = L/\sqrt{2}$, the control allocation matrix maps the individual rotor thrusts to the generalized control wrench:
 
-$$\begin{bmatrix} U_1 \\ \tau_\phi \\ \tau_\theta \\ \tau_\psi \end{bmatrix} = \begin{bmatrix} 1 & 1 & 1 & 1 \\ l & -l & -l & l \\ -l & -l & l & l \\ c_M & -c_M & c_M & -c_M \end{bmatrix} \begin{bmatrix} F_1 \\ F_2 \\ F_3 \\ F_4 \end{bmatrix}, \qquad c_M = \frac{K_M}{K_F}$$
+$$
+\mathbf{u} = \mathbf{M}_{\text{alloc}} \mathbf{F}, \qquad \mathbf{F} = \begin{bmatrix} F_1 & F_2 & F_3 & F_4 \end{bmatrix}^T, \qquad F_i = K_F \omega_i^2, \qquad \mathbf{u} = \begin{bmatrix} U_1 & \tau_\phi & \tau_\theta & \tau_\psi \end{bmatrix}^T
+$$
+
+$$
+\begin{bmatrix} U_1 \\ \tau_\phi \\ \tau_\theta \\ \tau_\psi \end{bmatrix} = \begin{bmatrix} 1 & 1 & 1 & 1 \\ l & -l & -l & l \\ -l & -l & l & l \\ c_M & -c_M & c_M & -c_M \end{bmatrix} \begin{bmatrix} F_1 \\ F_2 \\ F_3 \\ F_4 \end{bmatrix}, \qquad c_M = \frac{K_M}{K_F}
+$$
 
 ### 5. Atmospheric Wind Disturbance and Aerodynamic Drag Model
 The `WindDisturbance` module superimposes steady ambient flow, continuous stochastic turbulence shaped by a low-altitude **Dryden spectral filter**, and user-triggered discrete gusts along the inertial $X$, $Y$, and $Z$ axes:
 
-$$\mathbf{v}_{\text{rel}} = \mathbf{v} - \mathbf{v}_{\text{wind}}(t), \qquad \mathbf{F}_d = -\frac{1}{2} \rho C_d \mathbf{A}_{\text{eff}} \mathbf{v}_{\text{rel}} |\mathbf{v}_{\text{rel}}| - \mathbf{C}_{\text{flap}}\mathbf{v}_{\text{rel}}$$
+$$
+\mathbf{v}_{\text{rel}} = \mathbf{v} - \mathbf{v}_{\text{wind}}(t), \qquad \mathbf{F}_d = -\frac{1}{2} \rho C_d \mathbf{A}_{\text{eff}} \mathbf{v}_{\text{rel}} |\mathbf{v}_{\text{rel}}| - \mathbf{C}_{\text{flap}}\mathbf{v}_{\text{rel}}
+$$
 
-Overturning moments $\boldsymbol{\tau}_{\text{wind}} = \mathbf{r}_{\text{cp}} \times (\mathbf{R}^T \mathbf{F}_d) + \boldsymbol{\tau}_{\text{inflow}}$ arise from the vertical offset $\mathbf{r}_{\text{cp}}$ of the rotor thrust plane above the center of mass and translational inflow asymmetry.
+Aerodynamic overturning moments arise from the vertical offset of the rotor thrust plane above the center of mass and translational inflow asymmetry:
+
+$$
+\boldsymbol{\tau}_{\text{wind}} = \mathbf{r}_{\text{cp}} \times (\mathbf{R}^T \mathbf{F}_d) + \boldsymbol{\tau}_{\text{inflow}}
+$$
 
 ---
 
 ## Flight Control Architectures
 
 ### 1. Hierarchical Cascade PID Controller (`controllers/pid_controller.py`)
-- **Outer Translational Loop (3D Position & Linear Velocity):** Evaluates a PID control law with integral anti-windup clamping over the position tracking error $\mathbf{e}_p = \mathbf{p}_{\text{ref}} - \mathbf{p}$ to compute the desired acceleration vector $\mathbf{a}_{\text{des}}$. Applies gravitational feedforward and non-linear tilt compensation $1/(\cos\phi\cos\theta)$ for the collective thrust $U_1$, while projecting horizontal accelerations into the heading-aligned frame to generate attitude angle references:
+- **Outer Translational Loop (3D Position & Linear Velocity):** Evaluates a PID control law with integral anti-windup clamping over the position tracking error to compute the desired translational acceleration vector:
 
-$$\theta_{\text{ref}} = \arctan2(a_{x,\psi}, g), \quad \phi_{\text{ref}} = \arctan2(-a_{y,\psi}, g)$$
+$$
+\mathbf{e}_p = \mathbf{p}_{\text{ref}} - \mathbf{p}, \qquad \mathbf{a}_{\text{des}} = \mathbf{K}_p \mathbf{e}_p + \mathbf{K}_i \int \mathbf{e}_p\,dt + \mathbf{K}_d \dot{\mathbf{e}}_p
+$$
 
-- **Inner Attitude Loop (Euler Angles & Gyroscope Rates):** High-bandwidth inner loop computing the stabilizing control moments $[\tau_\phi, \tau_\theta, \tau_\psi]^T$ scaled by the inertia tensor $\mathbf{J}$ from attitude tracking errors and direct angular rate damping on $[p, q, r]^T$.
+Applies gravitational feedforward and non-linear tilt compensation $1/(\cos\phi\cos\theta)$ for the collective thrust $U_1$, while projecting horizontal accelerations into the heading-aligned frame to generate the attitude angle references:
+
+$$
+\theta_{\text{ref}} = \arctan2(a_{x,\psi}, g), \quad \phi_{\text{ref}} = \arctan2(-a_{y,\psi}, g)
+$$
+
+- **Inner Attitude Loop (Euler Angles & Gyroscope Rates):** High-bandwidth inner loop computing the stabilizing control moments scaled by the inertia tensor $\mathbf{J}$ from attitude tracking errors and direct angular rate damping on $[p, q, r]^T$:
+
+$$
+\boldsymbol{\tau} = \begin{bmatrix} \tau_\phi & \tau_\theta & \tau_\psi \end{bmatrix}^T
+$$
 
 ### 2. Linear Quadratic Regulator — LQR (`controllers/lqr_controller.py`)
-Linearizing the 6-DOF nonlinear dynamics via analytical Jacobian evaluation around the hover equilibrium point ($\mathbf{x}_{\text{eq}}, \mathbf{u}_{\text{eq}} = [mg, 0, 0, 0]^T$):
+Linearizing the 6-DOF nonlinear dynamics via analytical Jacobian evaluation around the hover equilibrium point:
 
-$$\delta\dot{\mathbf{x}} = \mathbf{A}\delta\mathbf{x} + \mathbf{B}\delta\mathbf{u}, \qquad \mathbf{A} \in \mathbb{R}^{12\times 12},\ \mathbf{B} \in \mathbb{R}^{12\times 4}$$
+$$
+(\mathbf{x}_{\text{eq}}, \mathbf{u}_{\text{eq}}), \qquad \mathbf{u}_{\text{eq}} = \begin{bmatrix} mg & 0 & 0 & 0 \end{bmatrix}^T
+$$
+
+yields the continuous-time linear time-invariant (LTI) state-space representation:
+
+$$
+\delta\dot{\mathbf{x}} = \mathbf{A}\delta\mathbf{x} + \mathbf{B}\delta\mathbf{u}, \qquad \mathbf{A} \in \mathbb{R}^{12\times 12}, \quad \mathbf{B} \in \mathbb{R}^{12\times 4}
+$$
 
 The infinite-horizon quadratic cost functional:
 
-$$J = \int_0^{\infty} \left( \delta\mathbf{x}^T \mathbf{Q} \delta\mathbf{x} + \delta\mathbf{u}^T \mathbf{R} \delta\mathbf{u} \right) dt$$
+$$
+J = \int_0^{\infty} \left( \delta\mathbf{x}^T \mathbf{Q} \delta\mathbf{x} + \delta\mathbf{u}^T \mathbf{R} \delta\mathbf{u} \right) dt
+$$
 
 is minimized by solving the **Continuous-Time Algebraic Riccati Equation (CARE)** using `scipy.linalg.solve_continuous_are`:
 
-$$\mathbf{A}^T\mathbf{P} + \mathbf{P}\mathbf{A} - \mathbf{P}\mathbf{B}\mathbf{R}^{-1}\mathbf{B}^T\mathbf{P} + \mathbf{Q} = \mathbf{0} \implies \mathbf{K} = \mathbf{R}^{-1}\mathbf{B}^T\mathbf{P}$$
+$$
+\mathbf{A}^T\mathbf{P} + \mathbf{P}\mathbf{A} - \mathbf{P}\mathbf{B}\mathbf{R}^{-1}\mathbf{B}^T\mathbf{P} + \mathbf{Q} = \mathbf{0} \implies \mathbf{K} = \mathbf{R}^{-1}\mathbf{B}^T\mathbf{P}
+$$
 
-Whenever the diagonal entries of $\mathbf{Q}$ or $\mathbf{R}$ are adjusted via the interface sliders, the Riccati equation is solved in real time to update the full-state feedback gain matrix $\mathbf{K} \in \mathbb{R}^{4\times 12}$ under the control law $\mathbf{u} = \mathbf{u}_{\text{eq}} - \mathbf{K}(\mathbf{x} - \mathbf{x}_{\text{ref}})$.
+Whenever the diagonal entries of $\mathbf{Q}$ or $\mathbf{R}$ are adjusted via the interface sliders, the Riccati equation is solved in real time to update the full-state feedback gain matrix $\mathbf{K} \in \mathbb{R}^{4\times 12}$ under the optimal control law:
+
+$$
+\mathbf{u} = \mathbf{u}_{\text{eq}} - \mathbf{K}(\mathbf{x} - \mathbf{x}_{\text{ref}})
+$$
 
 ---
 
