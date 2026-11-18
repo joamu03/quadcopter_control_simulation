@@ -4,6 +4,16 @@ Interactive six-degree-of-freedom (6-DOF) three-dimensional flight control simul
 
 ---
 
+## Live Demonstration
+
+<div align="center">
+
+![3D Quadcopter Simulation (PID vs. LQR)](assets/preview.gif)
+
+</div>
+
+---
+
 ## Repository Structure
 
 ```text
@@ -18,7 +28,8 @@ quadcopter_simulation/
 │
 ├── assets/
 │   ├── drone_icon.ico       # Multi-resolution application icon for window title bar and taskbar
-│   └── drone_icon.png       # High-resolution vector quadcopter emblem
+│   ├── drone_icon.png       # High-resolution vector quadcopter emblem
+│   └── preview.gif          # Live 3D flight simulation demonstration (PID vs. LQR)
 │
 ├── physics/
 │   ├── __init__.py
